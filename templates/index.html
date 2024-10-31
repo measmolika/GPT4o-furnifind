@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon.png') }}">
+    <title>Upload Furniture Album</title>
+</head>
+<body class="p-5" style="padding-bottom: 200px;">
+    <h2 class="text-2xl font-semibold text-center mb-5">Upload Your Furniture Album</h2>
+    <div class="flex flex-row space-x-4 items-center mb-5">
+        <form action="{{ url_for('upload_files') }}" method="post" enctype="multipart/form-data">
+            <div class="d-flex space-x-2">
+                <label class="block text-gray-700 font-medium mb-2" for="files">Upload Images:</label>
+                <input type="file" name="files" id="files" multiple accept="image/*" class="text-gray-700 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit" class="bg-gray-500 text-white font-semibold p-2 rounded-md hover:bg-gray-600 transition-colors duration-300">Upload Album</button>
+                <button onclick="deleteAllRecords()" class="bg-red-500 text-white font-semibold px-4 py-2 rounded-md hover:bg-red-600 transition-colors duration-300">
+                    Delete All
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div id="search-popup" class="fixed bottom-4 right-4 bg-white p-6 rounded-lg shadow-lg border border-gray-200 w-80">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">Search Furniture</h2>
+            <button onclick="togglePopup()" class="text-gray-400 hover:text-gray-600">&times;</button>
+        </div>
+        <form action="{{ url_for('search_furniture') }}" method="post" class="space-y-4">
+            <input type="text" name="query" placeholder="Do you have a white table?" class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="flex space-x-2">
+                <button type="submit" class="w-full bg-blue-500 text-white font-semibold py-2 rounded-md hover:bg-blue-600 transition-colors duration-300">Search</button>
+                <button type="button" onclick="clearFilters()" class="w-full bg-gray-400 text-white font-semibold py-2 rounded-md hover:bg-gray-500 transition-colors duration-300">Clear</button>
+            </div>
+        </form>
+    </div>
+
+    <h2 class="text-2xl font-semibold text-center mb-5">All Records</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for item in all_results %}
+            <div class="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center">
+                <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.type }}" class="w-full h-48 object-cover rounded-lg mb-4">
+                <div class="text-center">
+                    <p class="font-bold text-lg">{{ item.type }}</p>
+                    <p class="text-gray-600">Color: {{ item.color }}</p>
+                    <p class="text-gray-600">Material: {{ item.material }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function clearFilters() {
+            // Clear the search input
+            document.querySelector('input[name="query"]').value = '';
+
+            // Submit the form to reset the filter
+            document.querySelector('form').submit();
+        }
+
+        function togglePopup() {
+            // Toggle the visibility of the popup
+            const popup = document.getElementById('search-popup');
+            popup.classList.toggle('hidden');
+        }
+
+        function deleteAllRecords() {
+            if (confirm('Are you sure you want to delete all records?')) {
+                fetch('{{ url_for("delete_all") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }).then(response => {
+                    if (response.ok) {
+                        // Optionally reload the page or show a message
+                        location.reload(); // Reloads the page to show updated content
+                    } else {
+                        alert('Failed to delete records');
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
